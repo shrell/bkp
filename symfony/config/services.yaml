@@ -8,7 +8,7 @@ parameters:
     app.mailer.from: 'Backup <backups@reynold.fr>'
     app.emailsnotif:
         - vreb87@gmail.com
-    app.backup.dir: '%kernel.cache_dir%/bk'
+    app.backup.dir: '%kernel.project_dir%/var/bk'
     app.backup.servers:
         WITHPATH:
             user: 'admin'

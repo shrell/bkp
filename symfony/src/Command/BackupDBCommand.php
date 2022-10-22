@@ -144,29 +144,37 @@ class BackupDBCommand extends Command
 			$databases = explode("\n", $process->getOutput());
 
 			// dump chaque base
-			foreach($databases as $database) {
-				if($database != "information_schema" && $database != "performance_schema") {
-					$this->logger->info(sprintf('Dumping %1$s ...', $database));
-					$params = array_merge($baseParams, [
-						'DB' => $database,
-						'OUTPUTPATH' => $this->cacheDir."/tmp_dumps/".$kConfig."/".$database.".sql",
-					]);
-					$process = Process::fromShellCommandline('docker exec ${CONTAINER} mysqldump -u${USER} -p${PASS} --opt --databases ${DB} > ${OUTPUTPATH}');
-					$process->mustRun(null, $params);
+			try {
+				foreach ($databases as $database) {
+					if ($database != "information_schema" && $database != "performance_schema") {
+						$this->logger->info(sprintf('Dumping %1$s ...', $database));
+						$params = array_merge($baseParams, [
+							'DB' => $database,
+							'OUTPUTPATH' => $this->cacheDir . "/tmp_dumps/" . $kConfig . "/" . $database . ".sql",
+						]);
+						$process = Process::fromShellCommandline('docker exec ${CONTAINER} mysqldump -u${USER} -p${PASS} --opt --databases ${DB} > ${OUTPUTPATH}');
+						$process->setTimeout(3600);
+						$process->mustRun(null, $params);
 
-					$this->logger->info('OK');
+						$this->logger->info('OK');
+					}
 				}
+			} catch (\Exception $e) {
+				throw $e;
+			} finally {
+				// redémarre le slave dans tous les cas
+				$process = Process::fromShellCommandline('docker exec ${CONTAINER} mysql -u${USER} -p${PASS} -e "START SLAVE"');
+				$process->mustRun(null, $baseParams);
 			}
 
-			// redémarre le slave
-			$process = Process::fromShellCommandline('docker exec ${CONTAINER} mysql -u${USER} -p${PASS} -e "START SLAVE"');
-			$process->mustRun(null, $baseParams);
+
 
 
 			// rsync
 			$this->logger->info('syncing...');
 
 			$process = Process::fromShellCommandline('rdiff-backup ${FROM} ${TO}');
+			$process->setTimeout(3600);
 			$process->mustRun(null, [
 				'FROM' => $this->cacheDir."/tmp_dumps/".$kConfig,
 				'TO' => $this->backupdir."/".$kConfig."/sqls",
@@ -174,6 +182,7 @@ class BackupDBCommand extends Command
 
 			// vide les backups de plus de 4 semaines
 			$process = Process::fromShellCommandline('rdiff-backup --remove-older-than 4W --force ${TO}');
+			$process->setTimeout(3600);
 			$process->mustRun(null, [
 				'TO' => $this->backupdir."/".$kConfig."/sqls",
 			]);
