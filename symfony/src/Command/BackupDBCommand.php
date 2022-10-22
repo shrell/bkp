@@ -16,7 +16,7 @@ class BackupDBCommand extends Command
 	protected static $defaultName = 'app:backupdb';
 	private LoggerInterface $logger;
 	private $configs;
-	private $cacheDir;
+	private $tmpDir;
 	private $backupdir;
 	private MailerInterface $mailer;
 	private $emailsNotif;
@@ -28,12 +28,12 @@ class BackupDBCommand extends Command
 			->addOption('status', null, InputOption::VALUE_NONE, 'Affiche le statut des serveurs');
 	}
 
-	public function __construct(LoggerInterface $logger, $configs, $cacheDir, $backupdir, MailerInterface $mailer, $emailsNotif)
+	public function __construct(LoggerInterface $logger, $configs, $tmpDir, $backupdir, MailerInterface $mailer, $emailsNotif)
 	{
 		parent::__construct();
 		$this->logger = $logger;
 		$this->configs = $configs;
-		$this->cacheDir = $cacheDir;
+		$this->tmpDir = $tmpDir;
 		$this->backupdir = $backupdir;
 		$this->mailer = $mailer;
 		$this->emailsNotif = (array)$emailsNotif;
@@ -83,7 +83,7 @@ class BackupDBCommand extends Command
 		}
 
 
-		$lockFile = $this->cacheDir."/backup.lock";
+		$lockFile = $this->tmpDir."/backup.lock";
 		$gotLock = false;
 		if($LOCK = fopen($lockFile, "w+")) {
 			if(flock($LOCK, LOCK_EX | LOCK_NB)) {
@@ -104,8 +104,8 @@ class BackupDBCommand extends Command
 
 			$this->logger->info($kConfig);
 
-			if(!is_dir($this->cacheDir."/tmp_dumps/".$kConfig)) {
-				mkdir($this->cacheDir."/tmp_dumps/".$kConfig, 0755, true);
+			if(!is_dir($this->tmpDir."/tmp_dumps/".$kConfig)) {
+				mkdir($this->tmpDir."/tmp_dumps/".$kConfig, 0755, true);
 			}
 			if(!is_dir($this->backupdir."/".$kConfig."/sqls")) {
 				mkdir($this->backupdir."/".$kConfig."/sqls", 0755, true);
@@ -150,7 +150,7 @@ class BackupDBCommand extends Command
 						$this->logger->info(sprintf('Dumping %1$s ...', $database));
 						$params = array_merge($baseParams, [
 							'DB' => $database,
-							'OUTPUTPATH' => $this->cacheDir . "/tmp_dumps/" . $kConfig . "/" . $database . ".sql",
+							'OUTPUTPATH' => $this->tmpDir . "/tmp_dumps/" . $kConfig . "/" . $database . ".sql",
 						]);
 						$process = Process::fromShellCommandline('docker exec ${CONTAINER} mysqldump -u${USER} -p${PASS} --opt --databases ${DB} > ${OUTPUTPATH}');
 						$process->setTimeout(3600);
@@ -176,7 +176,7 @@ class BackupDBCommand extends Command
 			$process = Process::fromShellCommandline('rdiff-backup ${FROM} ${TO}');
 			$process->setTimeout(3600);
 			$process->mustRun(null, [
-				'FROM' => $this->cacheDir."/tmp_dumps/".$kConfig,
+				'FROM' => $this->tmpDir."/tmp_dumps/".$kConfig,
 				'TO' => $this->backupdir."/".$kConfig."/sqls",
 			]);
 
@@ -190,7 +190,7 @@ class BackupDBCommand extends Command
 			// supprime les fichiers temporaires
 			$process = Process::fromShellCommandline('rm ${FROM}');
 			$process->mustRun(null, [
-				'FROM' => $this->cacheDir."/tmp_dumps/".$kConfig."/*.sql",
+				'FROM' => $this->tmpDir."/tmp_dumps/".$kConfig."/*.sql",
 			]);
 
 			$this->logger->info('done !');
