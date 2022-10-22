@@ -83,6 +83,10 @@ class BackupDBCommand extends Command
 		}
 
 
+		if(!is_dir($this->tmpDir)) {
+			mkdir($this->tmpDir, 0755, true);
+		}
+
 		$lockFile = $this->tmpDir."/backup.lock";
 		$gotLock = false;
 		if($LOCK = fopen($lockFile, "w+")) {
