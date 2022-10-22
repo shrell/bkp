@@ -99,7 +99,7 @@ class BackupDBCommand extends Command
 			throw new \Exception('Impossible de verrouiller : une tâche est peut être déjà en cours');
 		}
 
-		$dateDernier = file_get_contents($lockFile);
+		$dateDernier = trim(file_get_contents($lockFile));
 		$dateDuJour = date("Y-m-d");
 
 
