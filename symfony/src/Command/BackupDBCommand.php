@@ -89,7 +89,7 @@ class BackupDBCommand extends Command
 
 		$lockFile = $this->tmpDir."/backup.lock";
 		$gotLock = false;
-		if($LOCK = fopen($lockFile, "w+")) {
+		if($LOCK = fopen($lockFile, "a+")) {
 			if(flock($LOCK, LOCK_EX | LOCK_NB)) {
 				$gotLock = true;
 			}
