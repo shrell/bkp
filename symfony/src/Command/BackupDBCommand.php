@@ -150,7 +150,7 @@ class BackupDBCommand extends Command
 			// dump chaque base
 			try {
 				foreach ($databases as $database) {
-					if ($database != "information_schema" && $database != "performance_schema") {
+					if (!empty($database) && $database != "information_schema" && $database != "performance_schema") {
 						$this->logger->info(sprintf('Dumping %1$s ...', $database));
 						$params = array_merge($baseParams, [
 							'DB' => $database,
