@@ -4,12 +4,29 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.mailer.dsn: native://default
+    app.mailer.from: 'Backup <backups@reynold.fr>'
+    app.emailsnotif:
+        - vreb87@gmail.com
+    app.backup.dir: '%kernel.cache_dir%/bk'
+    app.backup.servers:
+        WITHPATH:
+            user: 'admin'
+            passwordfile: '/chemin/verS/le/pass'
+            container: 'mariadb_novade2019'
+        WITHCLEARTEXT:
+            user: 'admin'
+            password: 'passwordEZnClair'
+            container: 'mariadb_francis2019'
 
 services:
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            $rootDir: '%kernel.project_dir%'
+            $cacheDir: '%kernel.cache_dir%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -22,3 +39,8 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    App\Command\BackupDBCommand:
+        arguments:
+            $configs: '%app.backup.servers%'
+            $emailsNotif: '%app.emailsnotif%'
+            $backupdir: '%app.backup.dir%'
