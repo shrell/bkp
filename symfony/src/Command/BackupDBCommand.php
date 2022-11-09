@@ -156,7 +156,7 @@ class BackupDBCommand extends Command
 							'DB' => $database,
 							'OUTPUTPATH' => $this->tmpDir . "/tmp_dumps/" . $kConfig . "/" . $database . ".sql",
 						]);
-						$process = Process::fromShellCommandline('docker exec ${CONTAINER} mysqldump -u${USER} -p${PASS} --opt --databases ${DB} > ${OUTPUTPATH}');
+						$process = Process::fromShellCommandline('docker exec ${CONTAINER} mysqldump -u${USER} -p${PASS} --opt --max_allowed_packet=512M --databases ${DB} > ${OUTPUTPATH}');
 						$process->setTimeout(3600);
 						$process->mustRun(null, $params);
 
