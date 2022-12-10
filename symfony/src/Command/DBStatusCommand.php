@@ -97,6 +97,12 @@ class DBStatusCommand extends Command
 		}
 
 		// on balance le mail
+
+		if(!is_dir($this->tmpDir)) {
+			mkdir($this->tmpDir, 0755, true);
+		}
+
+
 		$lockFile = $this->tmpDir."/health.lock";
 		$gotLock = false;
 		if($LOCK = fopen($lockFile, "a+")) {
