@@ -44,3 +44,9 @@ services:
             $emailsNotif: '%app.emailsnotif%'
             $backupdir: '%app.backup.dir%'
             $tmpDir: '%kernel.project_dir%/var/tmp_bk'
+
+    App\Command\DBStatusCommand:
+        arguments:
+            $configs: '%app.backup.servers%'
+            $emailsNotif: '%app.emailsnotif%'
+            $tmpDir: '%kernel.project_dir%/var/tmp_bk'
