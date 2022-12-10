@@ -78,7 +78,7 @@ class DBStatusCommand extends Command
 
 				// Seconds_Behind_Master
 
-				$process = Process::fromShellCommandline('mysql -u${USER} -p${PASS} -sN -e "SHOW SLAVE STATUS\\G" | grep "Seconds_Behind_Master"');
+				$process = Process::fromShellCommandline('mysql -u${USER} -p${PASS} -s -e "SHOW SLAVE STATUS\\G" | grep "Seconds_Behind_Master"');
 				$process->mustRun(null, $params);
 				$slaveDelay = $process->getOutput();
 
