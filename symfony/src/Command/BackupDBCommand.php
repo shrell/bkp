@@ -157,7 +157,7 @@ class BackupDBCommand extends Command
 							'OUTPUTPATH' => $this->tmpDir . "/tmp_dumps/" . $kConfig . "/" . $database . ".sql",
 						]);
 						$process = Process::fromShellCommandline('docker exec ${CONTAINER} mysqldump -u${USER} -p${PASS} --opt --max_allowed_packet=512M --databases ${DB} > ${OUTPUTPATH}');
-						$process->setTimeout(3600);
+						$process->setTimeout(7200);
 						$process->mustRun(null, $params);
 
 						$this->logger->info('OK');
@@ -178,7 +178,7 @@ class BackupDBCommand extends Command
 			$this->logger->info('syncing...');
 
 			$process = Process::fromShellCommandline('rdiff-backup ${FROM} ${TO}');
-			$process->setTimeout(3600);
+			$process->setTimeout(7200);
 			$process->mustRun(null, [
 				'FROM' => $this->tmpDir."/tmp_dumps/".$kConfig,
 				'TO' => $this->backupdir."/".$kConfig."/sqls",
@@ -186,7 +186,7 @@ class BackupDBCommand extends Command
 
 			// vide les backups de plus de 4 semaines
 			$process = Process::fromShellCommandline('rdiff-backup --remove-older-than 4W --force ${TO}');
-			$process->setTimeout(3600);
+			$process->setTimeout(7200);
 			$process->mustRun(null, [
 				'TO' => $this->backupdir."/".$kConfig."/sqls",
 			]);
